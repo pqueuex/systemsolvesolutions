@@ -35,7 +35,9 @@ body {
     padding: 8px 10px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     min-height: 47px;
+    position: relative;
 }
 
 .logo-space {
@@ -43,6 +45,13 @@ body {
     display: flex;
     align-items: center;
     justify-content: flex-start;
+}
+
+.american-flag {
+    width: 24px;
+    height: auto;
+    margin-left: 10px;
+    flex-shrink: 0;
 }
 
 .logo-text {
@@ -737,7 +746,7 @@ iframe[src*="tally.so"] {
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
-    width: 480px !important;
+    width: 400px !important;
     height: 85vh !important;
     max-height: 700px !important;
     border-radius: 12px !important;
@@ -754,7 +763,7 @@ iframe[id*="tally"] {
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
-    width: 480px !important;
+    width: 400px !important;
     height: 85vh !important;
     max-height: 700px !important;
     border-radius: 12px !important;
@@ -775,9 +784,25 @@ div[data-tally-overlay] {
     .tally-widget iframe,
     iframe[title*="Tally"],
     iframe[id*="tally"] {
-        width: 95vw !important;
-        height: 90vh !important;
-        max-height: none !important;
+        width: 85vw !important;
+        max-width: 350px !important;
+        height: 85vh !important;
+        max-height: 600px !important;
         border-radius: 8px !important;
+    }
+}
+
+/* Extra small screens (phones in portrait) */
+@media (max-width: 480px) {
+    iframe[src*="tally.so"],
+    div[data-tally-widget-id] iframe,
+    .tally-widget iframe,
+    iframe[title*="Tally"],
+    iframe[id*="tally"] {
+        width: 90vw !important;
+        max-width: 320px !important;
+        height: 80vh !important;
+        max-height: 550px !important;
+        border-radius: 6px !important;
     }
 }
