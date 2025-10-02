@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raspberry Pi Print Server Setup Guide - System Solve Solutions</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-space">
+                <a href="../index.html" class="logo-text">System Solve Solutions</a>
+            </div>
+        </div>
+
+        <!-- Main Container -->
+        <div class="main-container">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="categories-section">
+                    <a href="../index.html" class="category">Home</a>
+                    <a href="../about.html" class="category">About</a>
+                    <a href="../manuals.html" class="category">Manuals</a>
+                    <a href="../contact.html" class="category">Contact</a>
+                </div>
+            </div>
+
+            <!-- Manual Content -->
+            <div class="service-page-content">
+                <div class="breadcrumb">
+                    <a href="../index.html">Home</a> > <a href="../manuals.html">Manuals</a> > Raspberry Pi Print Server
+                </div>
+
+                <div class="service-header">
+                    <h1>Raspberry Pi Print Server Setup Guide</h1>
+                    <p>Transform any USB printer into a network-accessible printer using a Raspberry Pi</p>
+                </div>
+
+                <div class="about-section">
+                    <h2>Understanding Print Servers: Benefits and Advantages</h2>
+                    
+                    <h3>What is a Print Server?</h3>
+                    <p>A print server is a network device that connects printers to client computers over a network. It acts as an intermediary between your computers and printers, managing print jobs and making printers accessible to multiple devices simultaneously.</p>
+                    
+                    <h3>Key Benefits of Using a Print Server</h3>
+                    <ul>
+                        <li><strong>Network Accessibility</strong>: Transform any USB printer into a network printer accessible from multiple devices (computers, tablets, smartphones) anywhere on your network.</li>
+                        <li><strong>Cost Efficiency</strong>: Eliminate the need for expensive network-ready printers. Use your existing USB printer and make it network-capable for a fraction of the cost.</li>
+                        <li><strong>Centralized Management</strong>: Manage all print jobs from a single location, monitor printer status, and control access permissions from one interface.</li>
+                        <li><strong>Always-On Availability</strong>: Unlike computer-shared printers, a dedicated print server ensures your printer is always available, even when other computers are turned off.</li>
+                        <li><strong>Resource Optimization</strong>: Free up computer resources by offloading print job processing to the dedicated server.</li>
+                        <li><strong>Multi-Platform Support</strong>: Enable printing from different operating systems (Windows, macOS, Linux, mobile devices) to the same printer.</li>
+                        <li><strong>Remote Access</strong>: Print documents from anywhere on your network without being physically connected to the printer.</li>
+                    </ul>
+                </div>
+
+                <div class="about-section">
+                    <h2>Prerequisites and Equipment</h2>
+                    
+                    <h3>Required Hardware:</h3>
+                    <ul>
+                        <li>Raspberry Pi (any model with USB ports - Pi 3B+ or Pi 4 recommended)</li>
+                        <li>MicroSD card (16GB or larger recommended)</li>
+                        <li>USB printer (check CUPS compatibility at openprinting.org)</li>
+                        <li>Network connection (Ethernet or Wi-Fi)</li>
+                        <li>Power supply for Raspberry Pi</li>
+                        <li>USB cable for printer connection</li>
+                    </ul>
+                    
+                    <h3>Software Requirements:</h3>
+                    <ul>
+                        <li>Raspberry Pi OS (latest version)</li>
+                        <li>CUPS (Common Unix Printing System)</li>
+                        <li>Samba (for Windows compatibility)</li>
+                    </ul>
+                </div>
+
+                <div class="about-section">
+                    <h2>Step 1: Prepare Your Raspberry Pi</h2>
+                    
+                    <h3>1.1 Install Raspberry Pi OS</h3>
+                    <ol>
+                        <li>Download the latest Raspberry Pi OS from the official website</li>
+                        <li>Flash the image to your microSD card using Raspberry Pi Imager</li>
+                        <li>Insert the card into your Pi and boot up</li>
+                    </ol>
+                    
+                    <h3>1.2 Initial Setup</h3>
+                    <ol>
+                        <li>Complete the initial setup wizard</li>
+                        <li>Enable SSH if you plan to manage remotely</li>
+                        <li>Connect to your network (Wi-Fi or Ethernet)</li>
+                        <li>Update your system:</li>
+                    </ol>
+                    <div class="code-block">sudo apt update && sudo apt upgrade -y</div>
+                </div>
+
+                <div class="about-section">
+                    <h2>Step 2: Install Required Software</h2>
+                    
+                    <h3>2.1 Install CUPS</h3>
+                    <p>CUPS (Common Unix Printing System) is the core printing system for Unix-like operating systems.</p>
+                    <div class="code-block">sudo apt install cups cups-client -y</div>
+                    
+                    <h3>2.2 Install Additional Printer Drivers</h3>
+                    <p>Install common printer drivers for better compatibility:</p>
+                    <div class="code-block">sudo apt install printer-driver-all cups-pdf -y</div>
+                    
+                    <h3>2.3 Install Samba (Optional)</h3>
+                    <p>For Windows client compatibility:</p>
+                    <div class="code-block">sudo apt install samba -y</div>
+                </div>
+
+                <div class="about-section">
+                    <h2>Step 3: Configure CUPS</h2>
+                    
+                    <h3>3.1 Add User to lpadmin Group</h3>
+                    <p>Add the pi user to the lpadmin group for administrative privileges:</p>
+                    <div class="code-block">sudo usermod -a -G lpadmin pi</div>
+                    
+                    <h3>3.2 Configure CUPS for Network Access</h3>
+                    <p>Edit the CUPS configuration file:</p>
+                    <div class="code-block">sudo nano /etc/cups/cupsd.conf</div>
+                    
+                    <p>Make the following changes:</p>
+                    <div class="code-block"># Listen for connections on all interfaces<br>
+Listen 631<br>
+Listen /var/run/cups/cups.sock<br>
+<br>
+# Allow access from the local network<br>
+&lt;Location /&gt;<br>
+&nbsp;&nbsp;Order allow,deny<br>
+&nbsp;&nbsp;Allow localhost<br>
+&nbsp;&nbsp;Allow @LOCAL<br>
+&lt;/Location&gt;<br>
+<br>
+&lt;Location /admin&gt;<br>
+&nbsp;&nbsp;Order allow,deny<br>
+&nbsp;&nbsp;Allow localhost<br>
+&nbsp;&nbsp;Allow @LOCAL<br>
+&lt;/Location&gt;</div>
+                    
+                    <h3>3.3 Restart CUPS Service</h3>
+                    <div class="code-block">sudo systemctl restart cups<br>
+sudo systemctl enable cups</div>
+                </div>
+
+                <div class="about-section">
+                    <h2>Step 4: Connect and Configure Your Printer</h2>
+                    
+                    <h3>4.1 Connect USB Printer</h3>
+                    <ol>
+                        <li>Connect your USB printer to the Raspberry Pi</li>
+                        <li>Power on the printer</li>
+                        <li>Check if the printer is detected:</li>
+                    </ol>
+                    <div class="code-block">lsusb</div>
+                    
+                    <h3>4.2 Access CUPS Web Interface</h3>
+                    <ol>
+                        <li>Open a web browser on any device connected to your network</li>
+                        <li>Navigate to: <code>http://[PI_IP_ADDRESS]:631</code></li>
+                        <li>Click on "Administration" tab</li>
+                        <li>Click "Add Printer"</li>
+                        <li>Log in with your Pi credentials when prompted</li>
+                    </ol>
+                    
+                    <h3>4.3 Add Printer Through Web Interface</h3>
+                    <ol>
+                        <li>Select your USB printer from the list</li>
+                        <li>Click "Continue"</li>
+                        <li>Enter printer name, description, and location</li>
+                        <li>Check "Share This Printer" option</li>
+                        <li>Click "Continue"</li>
+                        <li>Select appropriate driver from the list</li>
+                        <li>Click "Add Printer"</li>
+                        <li>Configure default printer options</li>
+                    </ol>
+                </div>
+
+                <div class="about-section">
+                    <h2>Step 5: Configure Samba for Windows Compatibility</h2>
+                    
+                    <h3>5.1 Edit Samba Configuration</h3>
+                    <div class="code-block">sudo nano /etc/samba/smb.conf</div>
+                    
+                    <p>Add the following to the end of the file:</p>
+                    <div class="code-block">[global]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;workgroup = WORKGROUP<br>
+&nbsp;&nbsp;&nbsp;&nbsp;server string = Pi Print Server<br>
+&nbsp;&nbsp;&nbsp;&nbsp;security = user<br>
+&nbsp;&nbsp;&nbsp;&nbsp;encrypt passwords = yes<br>
+&nbsp;&nbsp;&nbsp;&nbsp;printing = cups<br>
+&nbsp;&nbsp;&nbsp;&nbsp;printcap name = cups<br>
+&nbsp;&nbsp;&nbsp;&nbsp;load printers = yes<br>
+&nbsp;&nbsp;&nbsp;&nbsp;cups options = raw<br>
+<br>
+[printers]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;comment = All Printers<br>
+&nbsp;&nbsp;&nbsp;&nbsp;path = /var/spool/samba<br>
+&nbsp;&nbsp;&nbsp;&nbsp;browseable = no<br>
+&nbsp;&nbsp;&nbsp;&nbsp;public = yes<br>
+&nbsp;&nbsp;&nbsp;&nbsp;guest ok = yes<br>
+&nbsp;&nbsp;&nbsp;&nbsp;writable = no<br>
+&nbsp;&nbsp;&nbsp;&nbsp;printable = yes<br>
+&nbsp;&nbsp;&nbsp;&nbsp;create mode = 0700</div>
+                    
+                    <h3>5.2 Create Samba Spool Directory</h3>
+                    <div class="code-block">sudo mkdir -p /var/spool/samba<br>
+sudo chmod 777 /var/spool/samba</div>
+                    
+                    <h3>5.3 Restart Samba Service</h3>
+                    <div class="code-block">sudo systemctl restart smbd<br>
+sudo systemctl enable smbd</div>
+                </div>
+
+                <div class="about-section">
+                    <h2>Step 6: Test Your Print Server</h2>
+                    
+                    <h3>6.1 Test Print from Pi</h3>
+                    <p>Print a test page directly from the Pi:</p>
+                    <div class="code-block">lp /usr/share/cups/data/testprint</div>
+                    
+                    <h3>6.2 Test from CUPS Web Interface</h3>
+                    <ol>
+                        <li>Go to the CUPS web interface</li>
+                        <li>Click on "Printers" tab</li>
+                        <li>Select your printer</li>
+                        <li>Click "Print Test Page"</li>
+                    </ol>
+                </div>
+
+                <div class="about-section">
+                    <h2>Step 7: Connect Client Devices</h2>
+                    
+                    <h3>7.1 Windows Clients</h3>
+                    <ol>
+                        <li>Open "Settings" > "Printers & scanners"</li>
+                        <li>Click "Add a printer or scanner"</li>
+                        <li>Select "The printer that I want isn't listed"</li>
+                        <li>Choose "Select a shared printer by name"</li>
+                        <li>Enter: <code>http://[PI_IP_ADDRESS]:631/printers/[PRINTER_NAME]</code></li>
+                        <li>Follow the installation wizard</li>
+                    </ol>
+                    
+                    <h3>7.2 macOS Clients</h3>
+                    <ol>
+                        <li>Open "System Preferences" > "Printers & Scanners"</li>
+                        <li>Click the "+" button to add a printer</li>
+                        <li>Select the "IP" tab</li>
+                        <li>Enter Pi IP address and printer name</li>
+                        <li>Select "Internet Printing Protocol - IPP"</li>
+                        <li>Click "Add"</li>
+                    </ol>
+                    
+                    <h3>7.3 Linux Clients</h3>
+                    <ol>
+                        <li>Open printer settings in your distribution</li>
+                        <li>Add a new printer</li>
+                        <li>Select "Network Printer"</li>
+                        <li>Enter: <code>ipp://[PI_IP_ADDRESS]:631/printers/[PRINTER_NAME]</code></li>
+                        <li>Complete the setup</li>
+                    </ol>
+                    
+                    <h3>7.4 Mobile Devices</h3>
+                    <p>For iOS and Android devices, the printer should appear automatically in print dialogs if AirPrint is supported, or use apps like "Mopria Print Service" for Android.</p>
+                </div>
+
+                <div class="about-section">
+                    <h2>Step 8: Advanced Configuration</h2>
+                    
+                    <h3>8.1 Enable AirPrint Support</h3>
+                    <p>Install avahi-daemon for AirPrint compatibility:</p>
+                    <div class="code-block">sudo apt install avahi-daemon -y<br>
+sudo systemctl enable avahi-daemon</div>
+                    
+                    <h3>8.2 Configure Firewall (if enabled)</h3>
+                    <p>Allow CUPS traffic through the firewall:</p>
+                    <div class="code-block">sudo ufw allow 631/tcp<br>
+sudo ufw allow 5353/udp</div>
+                    
+                    <h3>8.3 Set Static IP Address</h3>
+                    <p>Configure a static IP for reliable access:</p>
+                    <div class="code-block">sudo nano /etc/dhcpcd.conf</div>
+                    
+                    <p>Add the following lines (adjust values for your network):</p>
+                    <div class="code-block">interface eth0<br>
+static ip_address=192.168.1.100/24<br>
+static routers=192.168.1.1<br>
+static domain_name_servers=192.168.1.1</div>
+                </div>
+
+                <div class="about-section">
+                    <h2>Step 9: Monitoring and Maintenance</h2>
+                    
+                    <h3>9.1 Monitor Print Jobs</h3>
+                    <p>Check print queue status:</p>
+                    <div class="code-block">lpstat -t</div>
+                    
+                    <h3>9.2 View CUPS Logs</h3>
+                    <p>Check CUPS error logs:</p>
+                    <div class="code-block">sudo tail -f /var/log/cups/error_log</div>
+                    
+                    <h3>9.3 Clear Print Queue</h3>
+                    <p>Cancel all print jobs if needed:</p>
+                    <div class="code-block">sudo cancel -a</div>
+                    
+                    <h3>9.4 Regular Maintenance</h3>
+                    <ul>
+                        <li>Update system packages monthly</li>
+                        <li>Check printer connectivity regularly</li>
+                        <li>Monitor disk space for print spooling</li>
+                        <li>Backup CUPS configuration periodically</li>
+                    </ul>
+                </div>
+
+                <div class="about-section">
+                    <h2>Troubleshooting Common Issues</h2>
+                    
+                    <h3>Common Problems and Solutions:</h3>
+                    <ul>
+                        <li><strong>Printer not detected</strong>: Check USB connection, try different USB port, verify printer power</li>
+                        <li><strong>Can't access CUPS web interface</strong>: Check firewall settings, verify CUPS is running, confirm IP address</li>
+                        <li><strong>Print jobs stuck in queue</strong>: Restart CUPS service, check printer status, clear queue</li>
+                        <li><strong>Windows clients can't connect</strong>: Verify Samba configuration, check network connectivity</li>
+                        <li><strong>Poor print quality</strong>: Check printer drivers, adjust print settings, clean print heads</li>
+                    </ul>
+                    
+                    <h3>Useful Commands for Troubleshooting:</h3>
+                    <div class="code-block"># Check CUPS status<br>
+sudo systemctl status cups<br>
+<br>
+# List available printers<br>
+lpstat -p<br>
+<br>
+# Check USB devices<br>
+lsusb<br>
+<br>
+# Restart print services<br>
+sudo systemctl restart cups<br>
+sudo systemctl restart smbd</div>
+                </div>
+
+                <div class="about-section">
+                    <h2>Security Considerations</h2>
+                    
+                    <h3>Best Practices:</h3>
+                    <ul>
+                        <li>Change default passwords on your Raspberry Pi</li>
+                        <li>Enable SSH key authentication instead of password authentication</li>
+                        <li>Configure firewall to allow only necessary ports</li>
+                        <li>Regularly update system packages</li>
+                        <li>Monitor access logs for suspicious activity</li>
+                        <li>Use VPN for remote access when possible</li>
+                    </ul>
+                </div>
+
+                <div class="about-section">
+                    <h2>Summary</h2>
+                    <p>You now have a fully functional Raspberry Pi print server that can:</p>
+                    <ul>
+                        <li>Share USB printers across your network</li>
+                        <li>Support multiple operating systems</li>
+                        <li>Provide centralized print management</li>
+                        <li>Offer cost-effective network printing</li>
+                    </ul>
+                    
+                    <p><strong>Setup time</strong>: 30-60 minutes</p>
+                    <p><strong>Cost</strong>: Under $50 (excluding printer)</p>
+                    <p><strong>Compatibility</strong>: Works with most USB printers and all major operating systems</p>
+                </div>
+
+                <div class="contact-cta">
+                    <h2>Need Help with Your Print Server Setup?</h2>
+                    <p>Our technicians can help you set up and configure your Raspberry Pi print server, including troubleshooting printer compatibility issues throughout Central Florida.</p>
+                    <p>
+                        <a href="tel:+13523505553">352-350-5553</a> | 
+                        <a href="mailto:info@systemsolvesolutions.com">info@systemsolvesolutions.com</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+                <p>&copy; 2025 SYSTEM SOLVE SOLUTIONS</p>
+                <p>Serving Central Florida: Leesburg • Mount Dora • Clermont • Eustis • Tavares • Groveland • Lady Lake • Fruitland Park • Umatilla • Sorrento • Astatula • Howey-in-the-Hills • Mascotte • Minneola • Montverde • Oakland • Winter Garden • Apopka • The Villages • Sanford • DeLand • Ocala • Gainesville • Orlando • Kissimmee • St. Cloud • Lakeland • Winter Haven • Sebring • Inverness • Crystal River • Brooksville • Spring Hill</p>
+                <p>
+                    <a href="mailto:info@systemsolvesolutions.com">Contact: info@systemsolvesolutions.com</a>
+                    <a href="tel:+13523505553">352-350-5553</a>
+                </p>
+                <p>
+                    <a href="../support/index.html">Support</a>
+                    <a href="../support/policy.html">Policy</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
